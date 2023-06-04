@@ -1,5 +1,6 @@
 import requests
 import hashlib
+import sys
 
 
 def request_api_data(query_char):
@@ -9,13 +10,14 @@ def request_api_data(query_char):
         raise RuntimeError(f"Error: {res.status_code}! Please try again later.")
     return res
 
+
 def get_password_leaks_count(hash_start, hash_end):
     hashes = (line.split(':')
               for line in hash_start.text.splitlines())
     for h, count in hashes:
         if h == hash_end:
             return count
-        return 0
+    return 0
 
 
 def pwned_api_check(password):
@@ -25,4 +27,15 @@ def pwned_api_check(password):
     return get_password_leaks_count(response, tail)
 
 
-pwned_api_check('password123')
+def main(passwords):
+    for password in passwords:
+        count = pwned_api_check(password)
+        if count:
+            print(f"password: {password} found {count} times...Consider choosing different password.")
+        else:
+            print(f"password: {password} not found in database. It's safe to use.")
+        return 'done'
+
+
+if __name__ == '__main__':
+    sys.exit(main(sys.argv[1:]))
